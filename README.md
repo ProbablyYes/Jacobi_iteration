@@ -105,6 +105,7 @@ GRID_SIZE=2048 FIXED_ITERS=200 REPETITIONS=5 make benchmark
 - `REPETITIONS`、`WARMUPS`：默认正式 5 次、预热 1 次。
 - `SIZE_LIST`、`TOLERANCE_LIST`：敏感性实验取值。
 - `SMOKE=1`：只运行很小的流水线冒烟实验。
+- `RESULT_DIR`：指定结果目录；测试套件使用临时目录，避免覆盖正式数据。
 
 原始数据位于 `results/raw.csv`，环境信息位于 `results/system_info.txt`，图片位于 `results/figures/`。这些产物默认不提交，防止把不同机器的数据混在一起。
 
@@ -127,4 +128,4 @@ GRID_SIZE=2048 FIXED_ITERS=200 REPETITIONS=5 make benchmark
 - 如果 Overlap 没有提速，如实从消息规模、计算通信比和 MPI 异步进展解释。
 - 多节点代码路径与单节点相同；SSH、hostfile 和节点间实验等真实集群准备好后再增加。
 
-详细实验报告草稿见 [docs/experiment_report.md](docs/experiment_report.md)。
+包含真实数据与分析的正式实验报告见 [docs/experiment_report.md](docs/experiment_report.md)。

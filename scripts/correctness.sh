@@ -2,7 +2,7 @@
 set -euo pipefail
 
 repo_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
-result_dir="${repo_dir}/results"
+result_dir=${RESULT_DIR:-"${repo_dir}/results"}
 size=${CORRECTNESS_SIZE:-65}
 iterations=${CORRECTNESS_ITERS:-500}
 processes=${CORRECTNESS_PROCESSES:-4}

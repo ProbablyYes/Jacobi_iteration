@@ -74,6 +74,7 @@ PY
 
 echo "[test] 小规模网格加密呈二阶精度"
 ACCURACY_SIZES="8 16 32" ACCURACY_TOL=1e-7 ACCURACY_MAX_ITERS=50000 \
+    RESULT_DIR="${temporary_dir}/accuracy-results" \
     bash "${repo_dir}/scripts/accuracy.sh" > "${temporary_dir}/orders.csv"
 python3 - "${temporary_dir}/orders.csv" <<'PY'
 import csv
@@ -87,6 +88,7 @@ if any(order < 1.8 or order > 2.2 for order in orders):
 PY
 
 echo "[test] benchmark 冒烟"
-SMOKE=1 bash "${repo_dir}/scripts/benchmark.sh" >/dev/null
+SMOKE=1 RESULT_DIR="${temporary_dir}/benchmark-results" \
+    bash "${repo_dir}/scripts/benchmark.sh" >/dev/null
 
 echo "全部测试通过"
