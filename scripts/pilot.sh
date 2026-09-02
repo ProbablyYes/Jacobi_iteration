@@ -17,4 +17,4 @@ for size in ${sizes}; do
 done
 
 echo "Pilot 数据已写入 ${output}" >&2
-echo "请选择单进程耗时约 2--30 秒的 N 作为正式 GRID_SIZE。" >&2
+echo "请选择单进程耗时约 2--30 秒的最大 N，并通过 SIZE_LIST 纳入正式矩阵。" >&2

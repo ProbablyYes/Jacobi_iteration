@@ -1,4 +1,4 @@
-2026-09-02T11:14:52+08:00
+2026-09-02T12:30:49+08:00
 Linux cp-Precision-Tower-5810 6.8.0-136-generic #136~22.04.1-Ubuntu SMP PREEMPT_DYNAMIC Fri Jul  3 16:29:11 UTC  x86_64 x86_64 x86_64 GNU/Linux
 架构：                                   x86_64
 CPU 运行模式：                           32-bit, 64-bit
@@ -43,7 +43,7 @@ Vulnerability Tsa:                       Not affected
 Vulnerability Tsx async abort:           Mitigation; Clear CPU buffers; SMT vulnerable
 Vulnerability Vmscape:                   Mitigation; IBPB before exit to userspace
                total        used        free      shared  buff/cache   available
-内存：       31Gi       2.8Gi       1.9Gi        24Mi        26Gi        27Gi
+内存：       31Gi       2.4Gi       2.3Gi        24Mi        26Gi        28Gi
 交换：      2.0Gi       531Mi       1.5Gi
 gcc (Ubuntu 11.4.0-1ubuntu1~22.04.3) 11.4.0
 Copyright (C) 2021 Free Software Foundation, Inc.
@@ -53,3 +53,6 @@ warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 mpirun (Open MPI) 4.1.6
 
 Report bugs to http://www.open-mpi.org/community/help/
+benchmark configuration: SIZE_LIST=1024 2048 4096; PROCESSES=1 2 4 8; FIXED_ITERS=200; REPETITIONS=5; WARMUPS=1; TOLERANCE_SIZE=128; TOLERANCE_LIST=1e-3 1e-5 1e-7; SENSITIVITY_PROCESSES=4
+serial placement: taskset --cpu-list 0
+MPI placement: core binding through /home/hly/projects/Jacobi_iteration/.local/openmpi/bin/mpirun; hwthread binding above 4 processes

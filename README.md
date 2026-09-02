@@ -93,7 +93,7 @@ make plots      # 从真实 CSV 生成报告图
 
 ```bash
 PILOT_ITERS=200 PILOT_SIZES="1024 2048 4096" make pilot
-GRID_SIZE=2048 FIXED_ITERS=200 REPETITIONS=5 make benchmark
+SIZE_LIST="1024 2048 4096" FIXED_ITERS=200 REPETITIONS=5 make benchmark
 ```
 
 常用环境变量：
@@ -101,13 +101,13 @@ GRID_SIZE=2048 FIXED_ITERS=200 REPETITIONS=5 make benchmark
 - `MPIEXEC`：MPI 启动器，默认 `mpirun`。
 - `MPIEXEC_ARGS`：覆盖自动进程绑定参数，适配调度器或特殊机器。
 - `PROCESSES`：强扩展进程列表，默认 `1 2 4 8`。
-- `GRID_SIZE`、`FIXED_ITERS`：正式强扩展工作量。
+- `SIZE_LIST`、`FIXED_ITERS`：固定迭代的规模—进程矩阵。
 - `REPETITIONS`、`WARMUPS`：默认正式 5 次、预热 1 次。
-- `SIZE_LIST`、`TOLERANCE_LIST`：敏感性实验取值。
+- `TOLERANCE_SIZE`、`TOLERANCE_LIST`：精度敏感性实验规模与阈值。
 - `SMOKE=1`：只运行很小的流水线冒烟实验。
 - `RESULT_DIR`：指定结果目录；测试套件使用临时目录，避免覆盖正式数据。
 
-原始数据位于 `results/raw.csv`，环境信息位于 `results/system_info.txt`，图片位于 `results/figures/`。这些产物默认不提交，防止把不同机器的数据混在一起。
+原始数据位于 `results/raw.csv`，环境信息位于 `results/system_info.txt`，图片位于 `results/figures/`。仓库中的正式数据来自报告所述实验机；在其他机器复现实验时可用 `RESULT_DIR` 输出到新目录，避免混合不同机器的数据。
 
 ## 计时口径
 
@@ -122,7 +122,7 @@ GRID_SIZE=2048 FIXED_ITERS=200 REPETITIONS=5 make benchmark
 ## 单节点实验原则
 
 - 1、2、4 进程作为物理核心扩展性主数据；8 进程单独讨论超线程。
-- benchmark 自动检测物理核数：不超过物理核数时按 core 绑定，更多进程时显式使用并绑定 hardware thread。
+- benchmark 将串行程序固定到一个逻辑 CPU；MPI 自动检测物理核数，不超过物理核数时按 core 绑定，更多进程时显式使用并绑定 hardware thread。
 - 每组预热一次，正式重复五次，以中位数作图，同时保留全部原始值。
 - 不要求每一轮残差严格单调，只验证最终阈值与整体收敛趋势。
 - 如果 Overlap 没有提速，如实从消息规模、计算通信比和 MPI 异步进展解释。

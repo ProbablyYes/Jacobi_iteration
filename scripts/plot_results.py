@@ -59,7 +59,9 @@ def plot_scaling(rows: list[dict[str, str]]) -> None:
     counts = defaultdict(int)
     for item in summaries:
         counts[(item["size"], item["iterations"])] += 1
-    workload = max(counts, key=counts.get)
+    maximum_count = max(counts.values())
+    workload = max((key for key, count in counts.items() if count == maximum_count),
+                   key=lambda key: (int(key[0]), int(key[1])))
     selected = [item for item in summaries if (item["size"], item["iterations"]) == workload]
     serial_times = [float(item["total_seconds"]) for item in selected if item["version"] == "serial"]
     if not serial_times:
@@ -129,17 +131,25 @@ def plot_scaling(rows: list[dict[str, str]]) -> None:
         wait = [float(item["halo_wait_seconds"]) for _, item in mpi]
         reduction = [float(item["reduction_seconds"]) for _, item in mpi]
         x = list(range(len(mpi)))
-        plt.figure(figsize=(max(8, len(mpi) * 0.9), 4.8))
-        plt.bar(x, compute, label="computation")
-        plt.bar(x, issue, bottom=compute, label="halo issue")
-        lower = [a + b for a, b in zip(compute, issue)]
-        plt.bar(x, wait, bottom=lower, label="exposed halo wait")
-        lower = [a + b for a, b in zip(lower, wait)]
-        plt.bar(x, reduction, bottom=lower, label="Allreduce")
-        plt.xticks(x, labels)
-        plt.ylabel("Maximum rank time (s)")
-        plt.title("Measured time components")
-        plt.legend()
+        width = 0.25
+        figure, axes = plt.subplots(1, 2, figsize=(14, 4.8),
+                                    gridspec_kw={"width_ratios": [1, 1.5]})
+        axes[0].bar(x, compute, color="tab:blue", label="computation")
+        axes[0].set_xticks(x, labels, rotation=20, ha="right", fontsize=8)
+        axes[0].set_ylabel("Maximum rank time (s)")
+        axes[0].set_title("Stencil computation")
+        axes[0].grid(alpha=0.3, axis="y")
+        axes[1].bar([value - width for value in x], issue, width,
+                    label="halo issue")
+        axes[1].bar(x, wait, width, label="exposed halo wait")
+        axes[1].bar([value + width for value in x], reduction, width,
+                    label="Allreduce")
+        axes[1].set_xticks(x, labels, rotation=20, ha="right", fontsize=8)
+        axes[1].set_ylabel("Maximum rank time (s)")
+        axes[1].set_title("Communication and synchronization")
+        axes[1].grid(alpha=0.3, axis="y")
+        axes[1].legend()
+        figure.suptitle("Independently reduced timing components (not additive)")
         save_figure("time_breakdown.png")
 
     paired: dict[int, dict[str, dict[str, object]]] = defaultdict(dict)
@@ -214,6 +224,46 @@ def plot_sensitivities(rows: list[dict[str, str]]) -> None:
         plt.grid(alpha=0.3, which="both")
         plt.legend()
         save_figure("size_sensitivity.png")
+
+    matrix = median_rows(
+        [row for row in rows if row["status"] == "fixed_iterations"],
+        ("version", "size", "processes", "iterations"),
+    )
+    serial_by_size = {
+        int(item["size"]): float(item["total_seconds"])
+        for item in matrix if item["version"] == "serial"
+    }
+    matrix_sizes = sorted(serial_by_size)
+    if len(matrix_sizes) >= 2:
+        figure, axes = plt.subplots(1, 2, figsize=(11, 4.6))
+        for version, linestyle in (("mpi_blocking", "-"), ("mpi_overlap", "--")):
+            for size in matrix_sizes:
+                values = sorted(
+                    (int(item["processes"]),
+                     serial_by_size[size] / float(item["total_seconds"]))
+                    for item in matrix
+                    if item["version"] == version and int(item["size"]) == size
+                )
+                if values:
+                    label = f"{version.replace('mpi_', '')}, N={size}"
+                    axes[0].plot([x for x, _ in values], [y for _, y in values],
+                                 marker="o", linestyle=linestyle, label=label)
+                    axes[1].plot([x for x, _ in values],
+                                 [100.0 * y / x for x, y in values],
+                                 marker="o", linestyle=linestyle, label=label)
+        maximum_processes = max(int(item["processes"]) for item in matrix
+                                if item["version"] != "serial")
+        axes[0].plot([1, maximum_processes], [1, maximum_processes], "k:",
+                     label="ideal")
+        axes[1].axhline(100.0, color="black", linestyle=":", label="ideal")
+        axes[0].set_ylabel("Speedup (serial / MPI)")
+        axes[1].set_ylabel("Parallel efficiency (%)")
+        for axis in axes:
+            axis.set_xlabel("Processes")
+            axis.grid(alpha=0.3)
+            axis.legend(fontsize=8)
+        figure.suptitle("Problem size and parallel scaling")
+        save_figure("size_process_matrix.png")
 
     converged = [row for row in rows if row["status"] == "converged"]
     summaries = median_rows(converged, ("version", "size", "processes", "tolerance", "iterations"))
