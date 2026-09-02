@@ -191,6 +191,60 @@ def plot_convergence(rows: list[dict[str, str]]) -> None:
     save_figure("convergence.png")
 
 
+def plot_sensitivities(rows: list[dict[str, str]]) -> None:
+    fixed = [row for row in rows if row["status"] == "fixed_iterations"
+             and int(row["processes"]) == 4]
+    summaries = median_rows(fixed, ("version", "size", "processes", "iterations"))
+    sizes = sorted({int(item["size"]) for item in summaries})
+    if len(sizes) >= 2:
+        plt.figure(figsize=(7, 4.5))
+        for version in ("mpi_blocking", "mpi_overlap"):
+            values = sorted(
+                (int(item["size"]), float(item["total_seconds"]))
+                for item in summaries if item["version"] == version
+            )
+            if values:
+                plt.plot([x for x, _ in values], [y for _, y in values], "o-",
+                         label=version)
+        plt.xscale("log", base=2)
+        plt.yscale("log")
+        plt.xlabel("Interior grid size N")
+        plt.ylabel("Median time (s)")
+        plt.title("Problem-size sensitivity: P=4")
+        plt.grid(alpha=0.3, which="both")
+        plt.legend()
+        save_figure("size_sensitivity.png")
+
+    converged = [row for row in rows if row["status"] == "converged"]
+    summaries = median_rows(converged, ("version", "size", "processes", "tolerance", "iterations"))
+    tolerances = sorted({float(item["tolerance"]) for item in summaries}, reverse=True)
+    if len(tolerances) >= 2:
+        figure, axes = plt.subplots(1, 2, figsize=(10, 4.5))
+        for version in ("mpi_blocking", "mpi_overlap"):
+            values = sorted(
+                ((float(item["tolerance"]), int(item["iterations"]),
+                  float(item["total_seconds"]))
+                 for item in summaries if item["version"] == version),
+                reverse=True,
+            )
+            if values:
+                labels = [f"{tol:.0e}" for tol, _, _ in values]
+                axes[0].plot(labels, [iterations for _, iterations, _ in values],
+                             "o-", label=version)
+                axes[1].plot(labels, [seconds for _, _, seconds in values],
+                             "o-", label=version)
+        axes[0].set_title("Iterations to convergence")
+        axes[0].set_ylabel("Iterations")
+        axes[1].set_title("Runtime to convergence")
+        axes[1].set_ylabel("Median time (s)")
+        for axis in axes:
+            axis.set_xlabel("Residual tolerance")
+            axis.grid(alpha=0.3)
+            axis.legend()
+        figure.suptitle("Tolerance sensitivity")
+        save_figure("tolerance_sensitivity.png")
+
+
 def plot_accuracy(rows: list[dict[str, str]]) -> None:
     if len(rows) < 2:
         return
@@ -219,6 +273,7 @@ def main() -> None:
     if not raw and not accuracy and not convergence:
         raise SystemExit("没有实验数据；请先运行 make benchmark 和 make accuracy")
     plot_scaling(raw)
+    plot_sensitivities(raw)
     plot_convergence(convergence)
     plot_accuracy(accuracy)
     print(f"图表已写入 {FIGURES}")
