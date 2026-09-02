@@ -2,8 +2,5 @@ bin/
 build/
 .local/
 .venv/
-results/*.csv
-results/*.txt
-results/figures/*.png
 __pycache__/
 *.pyc

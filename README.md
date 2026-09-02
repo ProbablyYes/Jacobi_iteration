@@ -81,6 +81,7 @@ mpirun -np 4 ./bin/jacobi_mpi_overlap --size 64 --tol 1e-6
 
 ```bash
 make test       # 数值一致性、异常输入、收敛、二阶精度、流水线冒烟
+make correctness # 保存三版本一致性实验记录
 make sanitize   # 串行版 AddressSanitizer/UBSan
 make pilot      # 选择合适的正式强扩展规模
 make benchmark  # 重复测量并保存原始 CSV

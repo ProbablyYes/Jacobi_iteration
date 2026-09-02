@@ -6,7 +6,7 @@ LDLIBS ?= -lm
 BIN_DIR := bin
 BUILD_DIR := build
 
-.PHONY: all env test pilot benchmark accuracy plots sanitize clean
+.PHONY: all env test correctness pilot benchmark accuracy plots sanitize clean
 
 env:
 	bash scripts/setup_env.sh
@@ -39,6 +39,9 @@ $(BIN_DIR)/jacobi_mpi_overlap: $(BUILD_DIR)/mpi_overlap.o $(BUILD_DIR)/common.o 
 
 test: all
 	bash tests/run_tests.sh
+
+correctness: all
+	bash scripts/correctness.sh
 
 pilot: all
 	bash scripts/pilot.sh
